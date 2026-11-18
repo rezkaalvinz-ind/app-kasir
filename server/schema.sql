@@ -90,3 +90,14 @@ create index if not exists idx_sales_created_at on sales (created_at);
 create index if not exists idx_sale_items_sale on sale_items (sale_id);
 create index if not exists idx_debt_entries_debt on debt_entries (debt_id);
 create index if not exists idx_stock_ins_date on stock_ins (date);
+
+-- Sesi login disimpan di database supaya tetap valid setelah API restart
+-- dan saat berjalan sebagai beberapa instance (Vercel/serverless).
+create table if not exists sessions (
+  token       text primary key,
+  user_id     integer not null references users(id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  expires_at  timestamptz not null
+);
+
+create index if not exists sessions_user_idx on sessions (user_id);
