@@ -35,7 +35,11 @@ async function api(path, options = {}) {
     throw new Error('Tidak bisa menghubungi server. Pastikan `npm start` berjalan.')
   }
   const data = await res.json().catch(() => ({}))
-  const err = new Error(data.error || `Permintaan gagal (${res.status}).`)
+  const fallback =
+    res.status >= 500
+      ? 'Server API tidak merespons. Jalankan `npm start` (bukan hanya `npm run dev`) di folder proyek.'
+      : `Permintaan gagal (${res.status}).`
+  const err = new Error(data.error || fallback)
   err.status = res.status
   if (!res.ok) throw err
   return data
