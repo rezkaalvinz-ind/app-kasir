@@ -7,8 +7,10 @@
 import { readFile } from 'node:fs/promises'
 import pg from 'pg'
 import { hashPassword } from '../server/auth.js'
+import { seedIfEmpty } from '../server/seed.js'
 
-const connectionString = process.env.DATABASE_URL
+const connectionString =
+  process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL
 
 if (!connectionString) {
   console.error('[migrate] DATABASE_URL belum diisi. Contoh:')
@@ -58,6 +60,12 @@ async function main() {
       where table_schema = 'public' order by table_name`
   )
   console.log('[migrate] tabel:', tables.rows.map((r) => r.table_name).join(', '))
+
+  // Data contoh (produk, transaksi, utang) opsional: SEED_DEMO=1 npm run db:migrate
+  if (process.env.SEED_DEMO === '1') {
+    const seeded = await seedIfEmpty(client)
+    console.log(`[migrate] data contoh ${seeded ? 'dibuat' : 'dilewati (produk sudah ada)'}`)
+  }
 }
 
 main()
